@@ -1,11 +1,11 @@
 {
-  "name": "IotCommander",
+  "name": "EspCommander",
   "version": "1.0.0",
   "description": "Embedded command framework for ESP32",
   "keywords": ["embedded", "json", "variant"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/devlotfi/iot-commander"
+    "url": "https://github.com/devlotfi/esp-commander"
   },
   "authors": [
     {

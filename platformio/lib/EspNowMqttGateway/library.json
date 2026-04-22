@@ -1,0 +1,17 @@
+{
+  "name": "EspCommander",
+  "version": "1.0.0",
+  "description": "Library to interact with EspNowMqttGateway",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/devlotfi/esp-now-mqtt-gateway"
+  },
+  "authors": [
+    {
+      "name": "Debbal Lotfi",
+      "email": "debbal.lotfi.dev@gmail.com"
+    }
+  ],
+  "frameworks": ["arduino"],
+  "platforms": ["espressif32"]
+}

@@ -4,7 +4,6 @@
 #include <etl/string.h>
 #include "Properties.h"
 #include "Vars.h"
-#include "Notification.h"
 
 uint64_t getUnixTime()
 {
@@ -36,25 +35,31 @@ void feedFish()
   servo.attach(SERVO_PIN, 500, 2300);
 
   // feed 2 times
+  delay(500);
   servo.write(0);
   delay(600);
   servo.write(180);
-  delay(1000);
+  delay(1200);
 
   servo.write(0);
   delay(600);
   servo.write(180);
-  delay(1000);
+  delay(1200);
 
   servo.detach();
 
   FeedConfig conf = loadFeedConfig();
-  conf.lastFeedTime = getUnixTime();
+  uint64_t t = getUnixTime();
+  if (t > 100000)
+  {
+    conf.lastFeedTime = t;
+    saveFeedConfig(conf);
+  }
   saveFeedConfig(conf);
 
   Serial.println("Fish fed and time saved");
 
-  sendNotification("Fish feeder", "The fish have been fed.");
+  EspNowMqttGateway::Peer::notificationMessage("Fish feeder", "The fish have been fed.");
 }
 
 void checkAutoFeed()
@@ -81,6 +86,6 @@ void checkAutoFeed()
   if (now - conf.lastFeedTime >= FEED_INTERVAL)
   {
     Serial.println("Auto feeding triggered");
-    feedFish();
+    pendingFeed = true;
   }
 }

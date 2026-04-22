@@ -7,30 +7,29 @@
 #include <ArduinoJson.h>
 #include <etl/span.h>
 
-namespace IotCommander
+namespace EspCommander
 {
   class Query : public Serializable
   {
   public:
     struct Params
     {
-      const char* name;
+      const char *name;
       etl::span<Value> results;
       QueryHandler handler;
     };
 
-    const char* name;
+    const char *name;
     etl::span<Value> results;
     QueryHandler handler;
 
-    Query(Params params) :
-      name(params.name),
-      results(params.results),
-      handler(params.handler)
+    Query(Params params) : name(params.name),
+                           results(params.results),
+                           handler(params.handler)
     {
     }
 
-    void serialize(ArduinoJson::JsonObject& obj) override
+    void serialize(ArduinoJson::JsonObject &obj) override
     {
       obj["name"] = name;
       for (auto item : results)

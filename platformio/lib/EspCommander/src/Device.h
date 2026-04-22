@@ -7,7 +7,7 @@
 #include <ArduinoJson.h>
 #include <etl/span.h>
 
-namespace IotCommander
+namespace EspCommander
 {
   class Device
   {
@@ -140,7 +140,7 @@ namespace IotCommander
       ArduinoJson::DeserializationError jsonError = ArduinoJson::deserializeJson(requestDoc, jsonStringRequest);
       if (jsonError)
       {
-        IOTC_LOG(LibraryErrors::INVALID_JSON);
+        ESP_COMMANDER_LOG(LibraryErrors::INVALID_JSON);
         return;
       }
 
@@ -154,12 +154,12 @@ namespace IotCommander
       ArduinoJson::JsonObject parametersJson = requestDoc["parameters"].as<ArduinoJson::JsonObject>();
       Query *query = nullptr;
       Action *action = nullptr;
-      HandlerValue handlerParameters[IOTC_MAX_PARAMETERS];
-      HandlerValue handlerResults[IOTC_MAX_RESULTS];
+      HandlerValue handlerParameters[ESP_COMMANDER_MAX_PARAMETERS];
+      HandlerValue handlerResults[ESP_COMMANDER_MAX_RESULTS];
 
       if (formatValidationResult.type == RequestType::QUERY)
       {
-        if (strcmp(IOTC_SCHEMA_QUERY, formatValidationResult.name) == 0)
+        if (strcmp(ESP_COMMANDER_SCHEMA_QUERY, formatValidationResult.name) == 0)
         {
           schema(formatValidationResult.requestId, responseDoc, jsonStringResponse, jsonStringResponseSize);
           return;
@@ -180,9 +180,9 @@ namespace IotCommander
           return;
         }
 
-        IOTC_LOG("Query handler begin");
+        ESP_COMMANDER_LOG("Query handler begin");
         query->handler(handlerResults, error);
-        IOTC_LOG("Query handler end");
+        ESP_COMMANDER_LOG("Query handler end");
         if (error.has_value())
         {
           writeError(error, formatValidationResult.requestId, responseDoc, jsonStringResponse, jsonStringResponseSize);
@@ -195,7 +195,7 @@ namespace IotCommander
           bool valid = query->results[i].validateResult(handlerResults[i], resultsJson);
           if (!valid)
           {
-            writeError(LibraryErrors::INVALID_RESULTS, formatValidationResult.requestId, responseDoc, jsonStringResponse, jsonStringResponseSize);
+            writeError(LibraryErrors::INVALID_PARAMETERS, formatValidationResult.requestId, responseDoc, jsonStringResponse, jsonStringResponseSize);
             return;
           }
         }
@@ -229,9 +229,9 @@ namespace IotCommander
           }
         }
 
-        IOTC_LOG("Handler begin");
+        ESP_COMMANDER_LOG("Handler begin");
         action->handler(handlerParameters, handlerResults, error);
-        IOTC_LOG("Handler end");
+        ESP_COMMANDER_LOG("Handler end");
         if (error.has_value())
         {
           writeError(error, formatValidationResult.requestId, responseDoc, jsonStringResponse, jsonStringResponseSize);

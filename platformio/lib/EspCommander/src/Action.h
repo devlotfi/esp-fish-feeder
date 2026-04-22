@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "Config.h"
 #include "Serializable.h"
 #include "Types.h"
@@ -8,34 +7,32 @@
 #include <ArduinoJson.h>
 #include <etl/span.h>
 
-
-namespace IotCommander
+namespace EspCommander
 {
   class Action : public Serializable
   {
   public:
     struct Params
     {
-      const char* name;
+      const char *name;
       etl::span<Value> parameters;
       etl::span<Value> results;
       ActionHandler handler;
     };
 
-    const char* name;
+    const char *name;
     etl::span<Value> parameters;
     etl::span<Value> results;
     ActionHandler handler;
 
-    Action(Params params) :
-      name(params.name),
-      parameters(params.parameters),
-      results(params.results),
-      handler(params.handler)
+    Action(Params params) : name(params.name),
+                            parameters(params.parameters),
+                            results(params.results),
+                            handler(params.handler)
     {
     }
 
-    void serialize(ArduinoJson::JsonObject& obj) override
+    void serialize(ArduinoJson::JsonObject &obj) override
     {
       obj["name"] = name;
       for (auto item : parameters)

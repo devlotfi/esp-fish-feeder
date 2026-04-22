@@ -7,32 +7,31 @@
 #include <etl/span.h>
 #include <etl/variant.h>
 
-namespace IotCommander
+namespace EspCommander
 {
   class Value : public Serializable
   {
   public:
     struct Params
     {
-      const char* name;
+      const char *name;
       ValueType type;
       bool required;
       etl::optional<int> min;
       etl::optional<int> max;
-      etl::optional<etl::span<const char*>> enumDefinition;
+      etl::optional<etl::span<const char *>> enumDefinition;
     };
 
-    const char* name;
+    const char *name;
     ValueType type;
     bool required;
     int min = 0;
     int max = 0;
-    etl::span<const char*> enumDefinition;
+    etl::span<const char *> enumDefinition;
 
-    Value(Params params) :
-      name(params.name),
-      type(params.type),
-      required(params.required)
+    Value(Params params) : name(params.name),
+                           type(params.type),
+                           required(params.required)
     {
       if (type == ValueType::RANGE && params.min.has_value() && params.max.has_value())
       {
@@ -45,7 +44,8 @@ namespace IotCommander
       }
     }
 
-    void serialize(ArduinoJson::JsonObject& obj) override {
+    void serialize(ArduinoJson::JsonObject &obj) override
+    {
       obj["name"] = name;
       obj["type"] = type.to_string();
       obj["required"] = required;
@@ -57,18 +57,21 @@ namespace IotCommander
       else if (type == ValueType::ENUM)
       {
         auto arr = obj["enumDefinition"].to<ArduinoJson::JsonArray>();
-        for (auto& item : enumDefinition)
+        for (auto &item : enumDefinition)
         {
           arr.add(item);
         }
       }
     }
 
-    bool isValidHexColor(const char* str)
+    bool isValidHexColor(const char *str)
     {
-      if (!str) return false;
-      if (strlen(str) != 7) return false;
-      if (str[0] != '#') return false;
+      if (!str)
+        return false;
+      if (strlen(str) != 7)
+        return false;
+      if (str[0] != '#')
+        return false;
       for (int i = 1; i < 7; ++i)
       {
         char c = str[i];
@@ -81,62 +84,72 @@ namespace IotCommander
       return true;
     }
 
-    bool validateParameter(ArduinoJson::JsonObject& jsonValues, HandlerValue& handlerValue)
+    bool validateParameter(ArduinoJson::JsonObject &jsonValues, HandlerValue &handlerValue)
     {
       ArduinoJson::JsonVariant valueVariant = jsonValues[name];
-      if (valueVariant.isNull() && !required) return true;
-      if (valueVariant.isNull()) return false;
+      if (valueVariant.isNull() && !required)
+        return true;
+      if (valueVariant.isNull())
+        return false;
 
       if (type == ValueType::INT)
       {
         using Type = int;
-        if (!valueVariant.is<Type>()) return false;
+        if (!valueVariant.is<Type>())
+          return false;
         auto value = valueVariant.as<Type>();
         handlerValue.emplace(value);
       }
       else if (type == ValueType::RANGE)
       {
         using Type = int;
-        if (!valueVariant.is<Type>()) return false;
+        if (!valueVariant.is<Type>())
+          return false;
         auto value = valueVariant.as<Type>();
-        if (value < min || value > max) return false;
+        if (value < min || value > max)
+          return false;
         handlerValue.emplace(value);
       }
       else if (type == ValueType::FLOAT)
       {
         using Type = float;
-        if (!valueVariant.is<Type>()) return false;
+        if (!valueVariant.is<Type>())
+          return false;
         auto value = valueVariant.as<Type>();
         handlerValue.emplace(value);
       }
       else if (type == ValueType::DOUBLE)
       {
         using Type = double;
-        if (!valueVariant.is<Type>()) return false;
+        if (!valueVariant.is<Type>())
+          return false;
         auto value = valueVariant.as<Type>();
         handlerValue.emplace(value);
       }
       else if (type == ValueType::BOOL)
       {
         using Type = bool;
-        if (!valueVariant.is<Type>()) return false;
+        if (!valueVariant.is<Type>())
+          return false;
         auto value = valueVariant.as<Type>();
         handlerValue.emplace(value);
       }
       else if (type == ValueType::STRING)
       {
-        using Type = const char*;
-        if (!valueVariant.is<Type>()) return false;
+        using Type = const char *;
+        if (!valueVariant.is<Type>())
+          return false;
         auto value = valueVariant.as<Type>();
         handlerValue.emplace(value);
       }
       else if (type == ValueType::ENUM)
       {
-        using Type = const char*;
-        if (!valueVariant.is<Type>()) return false;
+        using Type = const char *;
+        if (!valueVariant.is<Type>())
+          return false;
         auto value = valueVariant.as<Type>();
         bool found = false;
-        for (auto& item : enumDefinition)
+        for (auto &item : enumDefinition)
         {
           if (strcmp(item, value) == 0)
           {
@@ -144,29 +157,35 @@ namespace IotCommander
             break;
           }
         }
-        if (!found) return false;
+        if (!found)
+          return false;
         handlerValue.emplace(value);
       }
       else if (type == ValueType::COLOR)
       {
-        using Type = const char*;
-        if (!valueVariant.is<Type>()) return false;
+        using Type = const char *;
+        if (!valueVariant.is<Type>())
+          return false;
         auto value = valueVariant.as<Type>();
-        if (!isValidHexColor(value)) return false;
+        if (!isValidHexColor(value))
+          return false;
         handlerValue.emplace(value);
       }
       return true;
     }
-    bool validateResult(HandlerValue& handlerValue, ArduinoJson::JsonObject& jsonValues)
+    bool validateResult(HandlerValue &handlerValue, ArduinoJson::JsonObject &jsonValues)
     {
-      if (!handlerValue.has_value() && !required) return true;
-      if (!handlerValue.has_value()) return false;
+      if (!handlerValue.has_value() && !required)
+        return true;
+      if (!handlerValue.has_value())
+        return false;
 
       if (type == ValueType::INT)
       {
         using Type = int;
         auto optionalValue = handlerValue.value();
-        if (!etl::holds_alternative<Type>(optionalValue)) return false;
+        if (!etl::holds_alternative<Type>(optionalValue))
+          return false;
         auto value = etl::get<Type>(optionalValue);
         jsonValues[name] = value;
       }
@@ -174,16 +193,19 @@ namespace IotCommander
       {
         using Type = int;
         auto optionalValue = handlerValue.value();
-        if (!etl::holds_alternative<Type>(optionalValue)) return false;
+        if (!etl::holds_alternative<Type>(optionalValue))
+          return false;
         auto value = etl::get<Type>(optionalValue);
-        if (value < min || value > max) return false;
+        if (value < min || value > max)
+          return false;
         jsonValues[name] = value;
       }
       else if (type == ValueType::FLOAT)
       {
         using Type = float;
         auto optionalValue = handlerValue.value();
-        if (!etl::holds_alternative<Type>(optionalValue)) return false;
+        if (!etl::holds_alternative<Type>(optionalValue))
+          return false;
         auto value = etl::get<Type>(optionalValue);
         jsonValues[name] = value;
       }
@@ -191,7 +213,8 @@ namespace IotCommander
       {
         using Type = double;
         auto optionalValue = handlerValue.value();
-        if (!etl::holds_alternative<Type>(optionalValue)) return false;
+        if (!etl::holds_alternative<Type>(optionalValue))
+          return false;
         auto value = etl::get<Type>(optionalValue);
         jsonValues[name] = value;
       }
@@ -199,26 +222,29 @@ namespace IotCommander
       {
         using Type = bool;
         auto optionalValue = handlerValue.value();
-        if (!etl::holds_alternative<Type>(optionalValue)) return false;
+        if (!etl::holds_alternative<Type>(optionalValue))
+          return false;
         auto value = etl::get<Type>(optionalValue);
         jsonValues[name] = value;
       }
       else if (type == ValueType::STRING)
       {
-        using Type = const char*;
+        using Type = const char *;
         auto optionalValue = handlerValue.value();
-        if (!etl::holds_alternative<Type>(optionalValue)) return false;
+        if (!etl::holds_alternative<Type>(optionalValue))
+          return false;
         auto value = etl::get<Type>(optionalValue);
         jsonValues[name] = value;
       }
       else if (type == ValueType::ENUM)
       {
-        using Type = const char*;
+        using Type = const char *;
         auto optionalValue = handlerValue.value();
-        if (!etl::holds_alternative<Type>(optionalValue)) return false;
+        if (!etl::holds_alternative<Type>(optionalValue))
+          return false;
         auto value = etl::get<Type>(optionalValue);
         bool found = false;
-        for (auto& item : enumDefinition)
+        for (auto &item : enumDefinition)
         {
           if (strcmp(item, value) == 0)
           {
@@ -226,14 +252,16 @@ namespace IotCommander
             break;
           }
         }
-        if (!found) return false;
+        if (!found)
+          return false;
         jsonValues[name] = value;
       }
       else if (type == ValueType::COLOR)
       {
-        using Type = const char*;
+        using Type = const char *;
         auto optionalValue = handlerValue.value();
-        if (!etl::holds_alternative<Type>(optionalValue)) return false;
+        if (!etl::holds_alternative<Type>(optionalValue))
+          return false;
         auto value = etl::get<Type>(optionalValue);
         jsonValues[name] = value;
       }

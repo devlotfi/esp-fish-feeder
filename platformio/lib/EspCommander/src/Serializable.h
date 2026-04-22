@@ -2,11 +2,11 @@
 
 #include <ArduinoJson.h>
 
-namespace IotCommander
+namespace EspCommander
 {
   class Serializable
   {
   public:
-    virtual void serialize(ArduinoJson::JsonObject&) = 0;
+    virtual void serialize(ArduinoJson::JsonObject &) = 0;
   };
 }
