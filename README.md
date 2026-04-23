@@ -24,6 +24,8 @@ The goal of this project is to create an automatic smart fish feeder
   <img height="50px" src="https://devlotfi.github.io/stack-icons/icons/cpp.svg">
   <img height="50px" src="https://devlotfi.github.io/stack-icons/icons/arduino.svg">
   <img height="50px" src="https://devlotfi.github.io/stack-icons/icons/espressif.svg">
+  <img height="50px" src="https://devlotfi.github.io/stack-icons/icons/esp-commander.svg">
+  <img height="50px" src="https://devlotfi.github.io/stack-icons/icons/esp-now-mqtt-gateway.svg">
 </p>
 
 ## Diagrams
@@ -38,6 +40,7 @@ The goal of this project is to create an automatic smart fish feeder
 
 - ESP32C3
 - SG90 (Servo)
+- 3xAA Batteries
 - Cables
 - Case (Optional)
 - Food Container
