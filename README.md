@@ -12,7 +12,7 @@ The goal of this project is to create an automatic smart fish feeder
 # 📌 Contents
 
 - [Tech stack](#tech-stack)
-- [Building the media controller](#building-the-media-controller)
+- [Build](#build)
   - [Components](#components)
   - [Libraries](#libraries)
   - [Configuration](#configuration)
@@ -34,7 +34,7 @@ The goal of this project is to create an automatic smart fish feeder
   <img height="50px" src="https://devlotfi.github.io/stack-icons/icons/fritzing.svg">
 </p>
 
-# Building the Media Controller
+# Build
 
 ## Components
 
