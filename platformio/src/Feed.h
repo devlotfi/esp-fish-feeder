@@ -37,12 +37,12 @@ void feedFish()
   // feed 2 times
   delay(500);
   servo.write(0);
-  delay(600);
+  delay(1200);
   servo.write(180);
   delay(1200);
 
   servo.write(0);
-  delay(600);
+  delay(1200);
   servo.write(180);
   delay(1200);
 

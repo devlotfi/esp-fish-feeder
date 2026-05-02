@@ -6,6 +6,7 @@
 #include <esp_now.h>
 #include "Utils.h"
 #include "Types.h"
+#include "EspNowMessageQueue.h"
 
 namespace EspNowMqttGateway
 {
@@ -69,6 +70,7 @@ namespace EspNowMqttGateway
 
       esp_now_register_recv_cb(onRecieve);
       esp_now_register_send_cb(onSent);
+      initQueue();
     }
 
     inline static void timeSync()
@@ -108,15 +110,15 @@ namespace EspNowMqttGateway
       strncpy(msg.payload.mqttEspNowMessage.text, text, ESP_NOW_MQTT_GATEWAY_MQTT_MESSAGE_TEXT_PAYLOAD_SIZE - 1);
       msg.payload.mqttEspNowMessage.text[ESP_NOW_MQTT_GATEWAY_MQTT_MESSAGE_TEXT_PAYLOAD_SIZE - 1] = '\0';
 
-      esp_err_t result = esp_now_send(
+      bool result = enqueueMessage(
           gatewayMac,
           (const uint8_t *)&msg,
           sizeof(EspNowMessage));
 
-      if (result == ESP_OK)
+      if (result)
         Serial.println("ESP-NOW: Packet accepted");
       else
-        Serial.printf("ESP-NOW: Send failed, err=0x%x\n", result);
+        Serial.println("ESP-NOW: Send failed");
     }
 
     inline static void notificationMessage(const char *title, const char *body)
@@ -130,15 +132,15 @@ namespace EspNowMqttGateway
       strncpy(msg.payload.notificationEspNowMessage.body, body, ESP_NOW_MQTT_GATEWAY_NOTIFICATION_BODY_SIZE - 1);
       msg.payload.notificationEspNowMessage.body[ESP_NOW_MQTT_GATEWAY_NOTIFICATION_BODY_SIZE - 1] = '\0';
 
-      esp_err_t result = esp_now_send(
+      bool result = enqueueMessage(
           gatewayMac,
           (const uint8_t *)&msg,
           sizeof(EspNowMessage));
 
-      if (result == ESP_OK)
+      if (result)
         Serial.println("ESP-NOW: Packet accepted");
       else
-        Serial.printf("ESP-NOW: Send failed, err=0x%x\n", result);
+        Serial.println("ESP-NOW: Send failed");
     }
 
     inline static void timeSyncMessage()
@@ -146,15 +148,15 @@ namespace EspNowMqttGateway
       EspNowMessage msg = {};
       msg.type = MessageType::TIME_SYNC_MESSAGE;
 
-      esp_err_t result = esp_now_send(
+      bool result = enqueueMessage(
           gatewayMac,
           (const uint8_t *)&msg,
           sizeof(EspNowMessage));
 
-      if (result == ESP_OK)
-        Serial.println("ESP-NOW: Time Sync Packet accepted");
+      if (result)
+        Serial.println("ESP-NOW: Packet accepted");
       else
-        Serial.printf("ESP-NOW: Send failed, err=0x%x\n", result);
+        Serial.println("ESP-NOW: Send failed");
     }
   };
 
