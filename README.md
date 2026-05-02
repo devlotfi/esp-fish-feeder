@@ -6,7 +6,7 @@ The goal of this project is to create an automatic smart fish feeder
 
 ## Features
 
-- Feeds fish every 48h or can be triggered manually
+- Feeds fish every 24h or can be triggered manually
 - Change color of LED
 
 # 📌 Contents
@@ -52,13 +52,12 @@ The goal of this project is to create an automatic smart fish feeder
 - ArduinoJson
 - Embedded Template Library ETL
 - PubSubClient
-- [IotCommander](https://github.com/devlotfi/iot-commander)
+- [EspCommander](https://github.com/devlotfi/esp-commander)
+- [EspNowMqttGateway](https://github.com/devlotfi/esp-now-mqtt-gateway)
 
 ## Configuration
 
 Change settings in [Properties.h](https://github.com/devlotfi/esp-fish-feeder/blob/master/arduino/Properties.h)
-
-The baord relied on an MQTT communication uisng [IotCommander](https://github.com/devlotfi/iot-commander)
 
 ## Images
 
