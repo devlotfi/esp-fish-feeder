@@ -40,7 +40,7 @@ The goal of this project is to create an automatic smart fish feeder
 
 - ESP32C3
 - SG90 (Servo)
-- 3xAA Batteries
+- 3x 470μf 25V capacitors
 - Cables
 - Case (Optional)
 - Food Container
