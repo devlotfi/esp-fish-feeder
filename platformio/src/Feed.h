@@ -45,6 +45,8 @@ void feedFish()
   delay(1200);
   servo.write(180);
   delay(1200);
+  servo.write(0);
+  delay(1200);
 
   servo.detach();
 
