@@ -2,6 +2,16 @@
 
 #define ESP_COMMANDER_DEBUG
 
+#ifdef ESP_COMMANDER_DEBUG
+#define ESP_COMMANDER_LOG(x) \
+  do                         \
+  {                          \
+    Serial.println(x);       \
+  } while (0)
+#else
+#define ESP_COMMANDER_LOG(x)
+#endif
+
 #ifndef ESP_COMMANDER_SCHEMA_QUERY
 #define ESP_COMMANDER_SCHEMA_QUERY "__SCHEMA__"
 #endif

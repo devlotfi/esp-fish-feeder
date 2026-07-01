@@ -8,6 +8,29 @@
 
 namespace EspNowMqttGateway
 {
+  void printCurrentTime()
+  {
+    time_t now = time(nullptr);
+
+    // UTC
+    struct tm utc;
+    gmtime_r(&now, &utc);
+
+    char utcStr[32];
+    strftime(utcStr, sizeof(utcStr), "%Y-%m-%d %H:%M:%S UTC", &utc);
+
+    // Local time (uses the POSIX TZ previously set with setenv("TZ", ...); tzset();)
+    struct tm local;
+    localtime_r(&now, &local);
+
+    char localStr[48];
+    strftime(localStr, sizeof(localStr), "%Y-%m-%d %H:%M:%S %Z", &local);
+
+    Serial.println("Current time:");
+    Serial.printf("UTC   : %s\n", utcStr);
+    Serial.printf("Local : %s\n", localStr);
+  }
+
   static bool isHexChar(char c)
   {
     return (c >= '0' && c <= '9') ||

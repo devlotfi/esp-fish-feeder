@@ -27,8 +27,7 @@ void setup_led()
 {
   preferences.begin(PREFERENCES_NAMESAPCE, false);
   auto ledConfig = loadConfig();
-  strncpy(currentColor, ledConfig.color, sizeof(currentColor) - 1);
-  currentColor[sizeof(currentColor) - 1] = '\0';
+  strlcpy(currentColor, ledConfig.color, sizeof(currentColor));
   currentBrightness = ledConfig.brightness;
   Serial.println(ledConfig.color);
   Serial.println(ledConfig.brightness);

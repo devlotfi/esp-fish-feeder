@@ -82,8 +82,7 @@ auto setRgbLedAction = EspCommander::Action(EspCommander::Action::Params{
         const char *colorParam = etl::get<const char *>(parameters[0].value());
         int brightnessParam = etl::get<int>(parameters[1].value());
 
-        strncpy(currentColor, colorParam, sizeof(currentColor) - 1);
-        currentColor[sizeof(currentColor) - 1] = '\0';
+        strlcpy(currentColor, colorParam, sizeof(currentColor));
         currentBrightness = brightnessParam;
 
         Serial.println(currentColor);
@@ -91,8 +90,7 @@ auto setRgbLedAction = EspCommander::Action(EspCommander::Action::Params{
 
         LedConfig ledConfig = {};
         ledConfig.brightness = currentBrightness;
-        strncpy(ledConfig.color, currentColor, sizeof(ledConfig.color) - 1);
-        ledConfig.color[sizeof(ledConfig.color) - 1] = '\0';
+        strlcpy(ledConfig.color, currentColor, sizeof(ledConfig.color));
         saveConfig(ledConfig);
         setLed(colorParam, (uint8_t)currentBrightness);
     },

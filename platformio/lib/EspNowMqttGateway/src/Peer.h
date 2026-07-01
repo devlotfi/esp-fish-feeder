@@ -21,6 +21,7 @@ namespace EspNowMqttGateway
     const char *peerMac;
     uint8_t channel;
     void (*handleRecieve)(const char *, const char *);
+    void (*handleCommand)(const char *);
   };
 
   class Peer
@@ -32,6 +33,9 @@ namespace EspNowMqttGateway
     inline static uint8_t peerMac[MAC_SIZE_BYTES];
     inline static uint8_t channel;
     inline static void (*handleRecieve)(const char *, const char *);
+    inline static void (*handleCommand)(const char *);
+    inline static char timezonePosix[64] = "UTC0";
+    inline static time_t lastSyncEpoch = 0;
 
     inline static void init(PeerConfig &peerConfig)
     {
@@ -46,6 +50,7 @@ namespace EspNowMqttGateway
       macStringToBytes(peerConfig.peerMac, peerMac);
       channel = peerConfig.channel;
       Peer::handleRecieve = peerConfig.handleRecieve;
+      Peer::handleCommand = peerConfig.handleCommand;
 
       WiFi.mode(WIFI_STA);
       esp_wifi_set_mac(WIFI_IF_STA, peerMac);
@@ -75,13 +80,12 @@ namespace EspNowMqttGateway
 
     inline static void timeSync()
     {
-      static const unsigned long CHECK_INTERVAL = 2000; // check every 2s
+      static const unsigned long CHECK_INTERVAL = 2000;
       static unsigned long lastCheck = 0;
       static bool firstCall = true;
 
       unsigned long nowMillis = millis();
 
-      // If it's not the first call, enforce the 2-second delay
       if (!firstCall && (nowMillis - lastCheck < CHECK_INTERVAL))
         return;
 
@@ -91,10 +95,16 @@ namespace EspNowMqttGateway
       time_t now;
       time(&now);
 
-      // 1577836800 = Jan 1 2020
       if (now < 1577836800)
       {
         Serial.println("Time not synced → starting sync");
+        timeSyncMessage();
+        return;
+      }
+
+      if (lastSyncEpoch == 0 || (now - lastSyncEpoch) >= 86400)
+      {
+        Serial.println("24h elapsed or first sync → requesting time sync");
         timeSyncMessage();
       }
     }
@@ -104,11 +114,8 @@ namespace EspNowMqttGateway
       EspNowMessage msg = {};
       msg.type = MessageType::TEXT_MESSAGE;
 
-      strncpy(msg.payload.mqttEspNowMessage.topic, topic, ESP_NOW_MQTT_GATEWAY_TOPIC_SIZE - 1);
-      msg.payload.mqttEspNowMessage.topic[ESP_NOW_MQTT_GATEWAY_TOPIC_SIZE - 1] = '\0';
-
-      strncpy(msg.payload.mqttEspNowMessage.text, text, ESP_NOW_MQTT_GATEWAY_MQTT_MESSAGE_TEXT_PAYLOAD_SIZE - 1);
-      msg.payload.mqttEspNowMessage.text[ESP_NOW_MQTT_GATEWAY_MQTT_MESSAGE_TEXT_PAYLOAD_SIZE - 1] = '\0';
+      strlcpy(msg.payload.mqttEspNowMessage.topic, topic, ESP_NOW_MQTT_GATEWAY_TOPIC_SIZE - 1);
+      strlcpy(msg.payload.mqttEspNowMessage.text, text, ESP_NOW_MQTT_GATEWAY_MQTT_MESSAGE_TEXT_PAYLOAD_SIZE - 1);
 
       bool result = enqueueMessage(
           gatewayMac,
@@ -126,11 +133,8 @@ namespace EspNowMqttGateway
       EspNowMessage msg = {};
       msg.type = MessageType::NOTIFICATION_MESSAGE;
 
-      strncpy(msg.payload.notificationEspNowMessage.title, title, ESP_NOW_MQTT_GATEWAY_NOTIFICATION_TITLE_SIZE - 1);
-      msg.payload.notificationEspNowMessage.title[ESP_NOW_MQTT_GATEWAY_NOTIFICATION_TITLE_SIZE - 1] = '\0';
-
-      strncpy(msg.payload.notificationEspNowMessage.body, body, ESP_NOW_MQTT_GATEWAY_NOTIFICATION_BODY_SIZE - 1);
-      msg.payload.notificationEspNowMessage.body[ESP_NOW_MQTT_GATEWAY_NOTIFICATION_BODY_SIZE - 1] = '\0';
+      strlcpy(msg.payload.notificationEspNowMessage.title, title, ESP_NOW_MQTT_GATEWAY_NOTIFICATION_TITLE_SIZE - 1);
+      strlcpy(msg.payload.notificationEspNowMessage.body, body, ESP_NOW_MQTT_GATEWAY_NOTIFICATION_BODY_SIZE - 1);
 
       bool result = enqueueMessage(
           gatewayMac,
@@ -147,6 +151,76 @@ namespace EspNowMqttGateway
     {
       EspNowMessage msg = {};
       msg.type = MessageType::TIME_SYNC_MESSAGE;
+
+      bool result = enqueueMessage(
+          gatewayMac,
+          (const uint8_t *)&msg,
+          sizeof(EspNowMessage));
+
+      if (result)
+        Serial.println("ESP-NOW: Packet accepted");
+      else
+        Serial.println("ESP-NOW: Send failed");
+    }
+
+    inline static void sleepyDataMessage(const char *text)
+    {
+      EspNowMessage msg = {};
+      msg.type = MessageType::SLEEPY_DATA_MESSAGE;
+
+      strlcpy(msg.payload.sleepyDataEspNowMessage.text, text, ESP_NOW_MQTT_GATEWAY_MQTT_MESSAGE_TEXT_PAYLOAD_SIZE - 1);
+      msg.payload.sleepyDataEspNowMessage.text[ESP_NOW_MQTT_GATEWAY_MQTT_MESSAGE_TEXT_PAYLOAD_SIZE - 1] = '\0';
+
+      bool result = enqueueMessage(
+          gatewayMac,
+          (const uint8_t *)&msg,
+          sizeof(EspNowMessage));
+
+      if (result)
+        Serial.println("ESP-NOW: Packet accepted");
+      else
+        Serial.println("ESP-NOW: Send failed");
+    }
+
+    inline static void sleepyCommandMessage()
+    {
+      EspNowMessage msg = {};
+      msg.type = MessageType::SLEEPY_COMMAND_MESSAGE;
+
+      bool result = enqueueMessage(
+          gatewayMac,
+          (const uint8_t *)&msg,
+          sizeof(EspNowMessage));
+
+      if (result)
+        Serial.println("ESP-NOW: Packet accepted");
+      else
+        Serial.println("ESP-NOW: Send failed");
+    }
+
+    inline static void wolMessage(const uint16_t port, const uint8_t mac[MAC_SIZE_BYTES])
+    {
+      EspNowMessage msg = {};
+      msg.type = MessageType::WOL_MESSAGE;
+      msg.payload.wolEspNowMessage.port = port;
+      memcpy(msg.payload.wolEspNowMessage.mac, mac, MAC_SIZE_BYTES);
+
+      bool result = enqueueMessage(
+          gatewayMac,
+          (const uint8_t *)&msg,
+          sizeof(EspNowMessage));
+
+      if (result)
+        Serial.println("ESP-NOW: Packet accepted");
+      else
+        Serial.println("ESP-NOW: Send failed");
+    }
+
+    inline static void metricMessage(const char body[GRAFANA_BODY_SIZE])
+    {
+      EspNowMessage msg = {};
+      msg.type = MessageType::METRIC_MESSAGE;
+      strlcpy(msg.payload.metricEspNowMessage.body, body, GRAFANA_BODY_SIZE);
 
       bool result = enqueueMessage(
           gatewayMac,
@@ -182,11 +256,8 @@ namespace EspNowMqttGateway
     {
     case EspNowMqttGateway::MessageType::TEXT_MESSAGE:
     {
-      memcpy(topic, msg->payload.mqttEspNowMessage.topic, ESP_NOW_MQTT_GATEWAY_TOPIC_SIZE - 1);
-      topic[ESP_NOW_MQTT_GATEWAY_TOPIC_SIZE - 1] = '\0';
-
-      memcpy(textData, msg->payload.mqttEspNowMessage.text, ESP_NOW_MQTT_GATEWAY_MQTT_MESSAGE_TEXT_PAYLOAD_SIZE);
-      textData[ESP_NOW_MQTT_GATEWAY_MQTT_MESSAGE_TEXT_PAYLOAD_SIZE - 1] = '\0';
+      strlcpy(topic, msg->payload.mqttEspNowMessage.topic, ESP_NOW_MQTT_GATEWAY_TOPIC_SIZE);
+      strlcpy(textData, msg->payload.mqttEspNowMessage.text, ESP_NOW_MQTT_GATEWAY_MQTT_MESSAGE_TEXT_PAYLOAD_SIZE);
 
       Serial.println("------------------------------------------");
       Serial.printf("Data Length: %d\n", len);
@@ -201,9 +272,40 @@ namespace EspNowMqttGateway
     case EspNowMqttGateway::MessageType::TIME_SYNC_MESSAGE:
     {
       uint32_t epoch = msg->payload.timeSyncEspNowMessage.epoch;
-      struct timeval tv = {.tv_sec = epoch};
+      Serial.println("Lol:");
+      Serial.println(msg->payload.timeSyncEspNowMessage.timezonePosix);
+      strlcpy(Peer::timezonePosix,
+              msg->payload.timeSyncEspNowMessage.timezonePosix,
+              TIMEZONE_POSIX_SIZE);
+
+      struct timeval tv = {
+          .tv_sec = epoch,
+          .tv_usec = 0};
       settimeofday(&tv, nullptr);
+
+      // Apply timezone
+      setenv("TZ", Peer::timezonePosix, 1);
+      tzset();
+
+      // Remember when we last synchronized
+      Peer::lastSyncEpoch = epoch;
+
       Serial.println("ESP-NOW: Time Synced");
+      printCurrentTime();
+      break;
+    }
+    case EspNowMqttGateway::MessageType::SLEEPY_COMMAND_MESSAGE:
+    {
+      memcpy(textData, msg->payload.sleepyCommandEspNowMessage.text, ESP_NOW_MQTT_GATEWAY_MQTT_MESSAGE_TEXT_PAYLOAD_SIZE);
+      textData[ESP_NOW_MQTT_GATEWAY_MQTT_MESSAGE_TEXT_PAYLOAD_SIZE - 1] = '\0';
+
+      Serial.println("------------------------------------------");
+      Serial.printf("Data Length: %d\n", len);
+      Serial.printf("Text: %s\n", msg->payload.sleepyCommandEspNowMessage.text);
+      Serial.println("------------------------------------------\n");
+
+      Peer::handleCommand(textData);
+
       break;
     }
 

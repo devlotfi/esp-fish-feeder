@@ -1,11 +1,11 @@
 #pragma once
 
+#include <ArduinoJson.h>
+#include <etl/span.h>
 #include "Action.h"
 #include "Config.h"
 #include "Query.h"
 #include "Types.h"
-#include <ArduinoJson.h>
-#include <etl/span.h>
 
 namespace EspCommander
 {

@@ -9,6 +9,7 @@ namespace EspCommander
   using HandlerValue = etl::optional<etl::variant<int, float, double, bool, const char *>>;
   using QueryHandler = void (*)(HandlerValue[], etl::optional<const char *> &);
   using ActionHandler = void (*)(HandlerValue[], HandlerValue[], etl::optional<const char *> &);
+  using SleepyActionHandler = void (*)(HandlerValue[], etl::optional<const char *> &);
 
   class ValueType
   {

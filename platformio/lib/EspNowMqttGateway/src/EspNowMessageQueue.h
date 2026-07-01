@@ -1,8 +1,8 @@
 #pragma once
 
+#include <Arduino.h>
 #include <esp_now.h>
-#include "Properties.h"
-#include "Vars.h"
+#include "Config.h"
 
 struct QueueMessage
 {
